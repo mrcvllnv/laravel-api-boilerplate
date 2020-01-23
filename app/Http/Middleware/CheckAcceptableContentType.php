@@ -22,11 +22,11 @@ class CheckAcceptableContentType
     {
         if (! Str::contains($request->url(), $this->exceptUrls)) {
             if ($request->header('Accept') != 'application/json') {
-                throw new NotAcceptableException('Accepts only json format');
+                throw new NotAcceptableException(trans('http.406.message'));
             }
 
             if (! $request->isMethod('get') && $request->header('Content-Type') != 'application/json') {
-                throw new UnsupportedMediaTypeException();
+                throw new UnsupportedMediaTypeException(trans('http.415.message'));
             }
         }
 
