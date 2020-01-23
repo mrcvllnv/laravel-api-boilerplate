@@ -17,7 +17,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'confirmation_code',
     ];
 
     /**
@@ -68,6 +68,19 @@ class User extends Authenticatable implements JWTSubject
     {
         if (! empty($password)) {
             $this->attributes['password'] = bcrypt($password);
+        }
+    }
+
+    /**
+     * Set the user's confirmation code
+     *
+     * @param string $password
+     * @return void
+     */
+    public function setConfirmationCodeAttribute(string $code)
+    {
+        if (! empty($code)) {
+            $this->attributes['confirmation_code'] = bcrypt($code);
         }
     }
 }

@@ -2,35 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
 use App\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use App\Exceptions\SignUpException;
+use App\Http\Controllers\Controller;
+use Illuminate\Database\QueryException;
+use App\Http\Requests\RegistrationRequest;
+use App\Notifications\VerificationCodeNotification;
 
 class RegisterController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Register Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles the registration of new users as well as their
-    | validation and creation. By default this controller uses a trait to
-    | provide this functionality without requiring any additional code.
-    |
-    */
-
-    use RegistersUsers;
-
-    /**
-     * Where to redirect users after registration.
-     *
-     * @var string
-     */
-    protected $redirectTo = RouteServiceProvider::HOME;
-
     /**
      * Create a new controller instance.
      *
@@ -42,32 +23,54 @@ class RegisterController extends Controller
     }
 
     /**
-     * Get a validator for an incoming registration request.
+     * Register user
      *
-     * @param  array  $data
-     * @return \Illuminate\Contracts\Validation\Validator
+     * @param RegistrationRequest $request
+     * @return User
      */
-    protected function validator(array $data)
+    public function __invoke(RegistrationRequest $request): User
     {
-        return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+         $user = DB::transaction(function () use ($request) {
+            try {
+                $user = User::create($request->validated());
+                $isSendingSuccessful = $this->sendVerificationCodeViaEmail($user);
+
+                if (!$isSendingSuccessful) {
+                    throw new SignUpException();
+                }
+            } catch (QueryException $e) {
+                $errorCode = $e->errorInfo[1];
+                if ($errorCode == 1062) {
+                    throw new SignUpException($e->getMessage(), 400, $e);
+                }
+                throw new SignUpException();
+            } catch (\Throwable $th) {
+                throw new SignUpException();
+            }
+
+            return $user;
+        });
+
+        return $user;
     }
 
     /**
-     * Create a new user instance after a valid registration.
+     * Send verification code via email
      *
-     * @param  array  $data
-     * @return \App\User
+     * @param User $user
+     * @return boolean
      */
-    protected function create(array $data)
+    private function sendVerificationCodeViaEmail(User $user): bool
     {
-        return User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        $code = mt_rand(1000, 9999);
+        $user->confirmation_code = $code;
+
+        if ($user->save()) {
+            $user->notify(new VerificationCodeNotification($code));
+
+            return true;
+        }
+        
+        return false;
     }
 }
