@@ -2,26 +2,31 @@
 
 namespace App\Notifications;
 
+use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
-use Illuminate\Support\HtmlString;
 
-class VerificationCodeNotification extends Notification implements ShouldQueue
+class VerifiedEmailNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    public $code;
+    /**
+     * THe user instance
+     *
+     * @var User
+     */
+    public $user;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct(string $code)
+    public function __construct(User $user)
     {
-        $this->code = $code;
+        $this->user = $user;
     }
 
     /**
@@ -45,11 +50,10 @@ class VerificationCodeNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->from(config('mail.from.address'), config('mail.from.name'))
-            ->subject('Verification Code')
-            ->line('Your verification code is:')
-            ->line(new HtmlString('<h1 style="letter-spacing: 10px; font-size: 20px;">'.$this->code.'</h1>'))
-            ->line('This code will expire in 60 minutes.')
-            ->line('If you did not request this, no further action is required.');
+            ->subject('Account Verified')
+            ->greeting('Hello ' . ucfirst($this->user->name) . '!')
+            ->line('## Your account has been verified')
+            ->line('Welcome to ' . config('app.name') . '!');
     }
 
     /**

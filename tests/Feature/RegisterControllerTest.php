@@ -36,7 +36,7 @@ class RegisterControllerTest extends TestCase
 
         Notification::assertSentTo($user, VerificationCodeNotification::class,
             function (VerificationCodeNotification $notification) use ($user) {
-                return Hash::check($notification->code, $user->confirmation_code);
+                return Hash::check($notification->code, $user->verification_code);
             });
     }
 

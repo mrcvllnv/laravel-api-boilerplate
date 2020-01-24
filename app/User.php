@@ -3,9 +3,9 @@
 namespace App;
 
 use Tymon\JWTAuth\Contracts\JWTSubject;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Notifications\VerificationCodeNotification;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable implements JWTSubject
 {
@@ -17,7 +17,7 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'confirmation_code',
+        'name', 'email', 'password', 'verification_code', 'verification_code_expires_at',
     ];
 
     /**
@@ -30,12 +30,22 @@ class User extends Authenticatable implements JWTSubject
     ];
 
     /**
+     * The attributes that should be mutated to dates.
+     *
+     * @var array
+     */
+    protected $dates = [
+        'verification_code_expires_at',
+    ];
+
+    /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'verification_code_expires_at' => 'datetime'
     ];
 
     /**
@@ -72,15 +82,46 @@ class User extends Authenticatable implements JWTSubject
     }
 
     /**
-     * Set the user's confirmation code
+     * Set the user's verification code
      *
      * @param string $password
      * @return void
      */
-    public function setConfirmationCodeAttribute(string $code)
+    public function setVerificationCodeAttribute(string $code)
     {
         if (! empty($code)) {
-            $this->attributes['confirmation_code'] = bcrypt($code);
+            $this->attributes['verification_code'] = bcrypt($code);
         }
+    }
+
+    /**
+     * Check if the verification code is expired
+     *
+     * @return boolean
+     */
+    public function isVerificationCodeExpired(): bool
+    {
+        return $this->verification_code_expires_at
+        ? $this->verification_code_expires_at->diffInMinutes() >= 60
+        : false;
+    }
+
+    /**
+     * Send the verification code notification.
+     *
+     * @return boolean
+     */
+    public function sendVerificationCodeViaEmail(): bool
+    {
+        $code = mt_rand(1000, 9999);
+
+        $this->update([
+            'verification_code' => $code,
+            'verification_code_expires_at' => now()->addHour()
+        ]);
+
+        $this->notify(new VerificationCodeNotification($code));
+
+        return true;
     }
 }

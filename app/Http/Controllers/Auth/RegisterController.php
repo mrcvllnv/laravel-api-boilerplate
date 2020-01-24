@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\User;
-use Illuminate\Support\Facades\DB;
 use App\Exceptions\SignUpException;
 use App\Http\Controllers\Controller;
-use Illuminate\Database\QueryException;
 use App\Http\Requests\RegistrationRequest;
 use App\Notifications\VerificationCodeNotification;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
@@ -33,11 +33,8 @@ class RegisterController extends Controller
          $user = DB::transaction(function () use ($request) {
             try {
                 $user = User::create($request->validated());
-                $isSendingSuccessful = $this->sendVerificationCodeViaEmail($user);
-
-                if (!$isSendingSuccessful) {
-                    throw new SignUpException();
-                }
+                
+                $user->sendVerificationCodeViaEmail();
             } catch (QueryException $e) {
                 $errorCode = $e->errorInfo[1];
                 if ($errorCode == 1062) {
@@ -52,25 +49,5 @@ class RegisterController extends Controller
         });
 
         return $user;
-    }
-
-    /**
-     * Send verification code via email
-     *
-     * @param User $user
-     * @return boolean
-     */
-    private function sendVerificationCodeViaEmail(User $user): bool
-    {
-        $code = mt_rand(1000, 9999);
-        $user->confirmation_code = $code;
-
-        if ($user->save()) {
-            $user->notify(new VerificationCodeNotification($code));
-
-            return true;
-        }
-        
-        return false;
     }
 }
