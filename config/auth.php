@@ -101,6 +101,8 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
+        'reset_domain' => env('BACK_OFFICE_URL'),
+        'reset_path'   => 'password/reset',
     ],
 
     /*
