@@ -2,29 +2,44 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\User;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
-use Illuminate\Foundation\Auth\ResetsPasswords;
+use App\Http\Resources\BooleanResource;
+use App\Exceptions\UserNotFoundException;
+use App\Http\Requests\ResetPasswordRequest;
+use App\Exceptions\InvalidResetTokenException;
 
 class ResetPasswordController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Password Reset Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller is responsible for handling password reset requests
-    | and uses a simple trait to include this behavior. You're free to
-    | explore this trait and override any methods you wish to tweak.
-    |
-    */
-
-    use ResetsPasswords;
-
     /**
-     * Where to redirect users after resetting their password.
+     * Reset the given user's password.
      *
-     * @var string
+     * @param ResetPasswordRequest $request
+     * @return BooleanResource
      */
-    protected $redirectTo = RouteServiceProvider::HOME;
+    public function __invoke(ResetPasswordRequest $request): BooleanResource
+    {
+        try {
+            $reset = DB::table(config('auth.passwords.users.table'))->whereToken($request->reset_token)->first();
+        } catch (\Throwable $th) {
+            throw new InvalidResetTokenException;
+        }
+
+        try {
+            $user = User::whereEmail($reset->email)->first();
+        } catch (\Throwable $th) {
+            throw new UserNotFoundException;
+        }
+
+        $result = $user->update([
+            'password' => $request->password
+        ]);
+
+        if ($result) {
+            DB::table(config('auth.passwords.users.table'))->whereToken($request->reset_token)->delete();
+        }
+
+        return new BooleanResource($result);
+    }
 }
