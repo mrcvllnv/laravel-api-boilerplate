@@ -30,7 +30,7 @@ class LoginControllerTest extends TestCase
             'password' => '12345'
         ])
         ->assertOk()
-        ->assertJsonStructure(['access_token']);
+        ->assertJsonFragment(['email' => $this->user->email]);
     }
 
     public function testUserIsAlreadyLoggedIn()
@@ -73,7 +73,7 @@ class LoginControllerTest extends TestCase
             'email' => $this->user->email,
             'password' => 'wr0ngp4ssw0rd'
         ])
-        ->assertStatus(401)
+        ->assertUnauthorized()
         ->assertJsonFragment(['message' => trans('auth.failed')]);
     }
 }

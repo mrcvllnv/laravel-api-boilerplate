@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\User;
 use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AccessTokenResource;
 use App\Exceptions\InvalidCredentialsException;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,10 +18,16 @@ class LoginController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest')->except('logout');
+        $this->middleware('guest');
     }
 
-    public function __invoke(LoginRequest $request)
+    /**
+     * Handle a login request to the application.
+     *
+     * @param LoginRequest $request
+     * @return AccessTokenResource
+     */
+    public function __invoke(LoginRequest $request): AccessTokenResource
     {
         try {
             $user = User::whereEmail($request->email)->firstOrfail();
@@ -31,15 +38,6 @@ class LoginController extends Controller
         $isPasswordWrong = !Hash::check($request->password, $user->password);
         throw_if($isPasswordWrong, new InvalidCredentialsException(trans('auth.failed')));
 
-        return $this->respondWithToken($user);
-    }
-
-    protected function respondWithToken($user)
-    {
-        return response()->json([
-            'access_token' => auth()->login($user),
-            'token_type'   => 'bearer',
-            'expires_in'   => auth()->factory()->getTTL() * 60
-        ]);
+        return new AccessTokenResource($user);
     }
 }
