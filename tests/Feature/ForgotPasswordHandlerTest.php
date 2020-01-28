@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
-class ForgotPasswordControllerTest extends TestCase
+class ForgotPasswordHandlerTest extends TestCase
 {
     use RefreshDatabase, WithFaker;
 

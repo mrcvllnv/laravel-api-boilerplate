@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use App\Notifications\VerificationCodeNotification;
 
-class RegisterControllerTest extends TestCase
+class RegistrationHandlerTest extends TestCase
 {
     use RefreshDatabase;
 

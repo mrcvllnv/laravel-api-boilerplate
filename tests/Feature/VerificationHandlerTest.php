@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
-class VerificationControllerTest extends TestCase
+class VerificationHandlerTest extends TestCase
 {
     use RefreshDatabase;
 
