@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ForgotPasswordRequest;
-use App\Http\Resources\BooleanResource;
+use App\Http\Requests\LoginRequest;
+use App\Http\Resources\AccessTokenResource;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 
-final class ForgotPasswordController extends Controller
+final class LoginHandler extends Controller
 {
     /**
      * The user repository instance.
@@ -24,18 +24,20 @@ final class ForgotPasswordController extends Controller
     public function __construct(UserRepositoryInterface $userRepository)
     {
         $this->userRepository = $userRepository;
+
+        $this->middleware('guest');
     }
 
     /**
-     * Send a reset link to the given user.
+     * Handle a login request to the application.
      *
-     * @param  \App\Http\Requests\ForgotPasswordRequest  $request
-     * @return \App\Http\Resources\BooleanResource
+     * @param  \App\Http\Requests\LoginRequest  $request
+     * @return \App\Http\Resources\AccessTokenResource
      */
-    public function __invoke(ForgotPasswordRequest $request): BooleanResource
+    public function __invoke(LoginRequest $request): AccessTokenResource
     {
-        $result = $this->userRepository->sendResetLink($request->email);
+        $user = $this->userRepository->login($request->email, $request->password);
 
-        return new BooleanResource($result);
+        return new AccessTokenResource($user);
     }
 }

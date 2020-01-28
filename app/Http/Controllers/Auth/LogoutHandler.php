@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BooleanResource;
 
-final class LogoutController extends Controller
+final class LogoutHandler extends Controller
 {
     /**
      * Create a new controller instance.

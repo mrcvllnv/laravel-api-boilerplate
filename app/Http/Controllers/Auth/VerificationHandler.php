@@ -8,7 +8,7 @@ use App\Http\Requests\EmailVerificationRequest;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Http\Request;
 
-final class VerificationController extends Controller
+final class VerificationHandler extends Controller
 {
     /**
      * The user repository instance.

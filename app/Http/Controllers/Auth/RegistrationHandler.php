@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BooleanResource;
-use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Requests\RegistrationRequest;
+use App\Http\Resources\AccessTokenResource;
 use App\Repositories\Interfaces\UserRepositoryInterface;
 
-final class ResetPasswordController extends Controller
+final class RegistrationHandler extends Controller
 {
     /**
      * The user repository instance.
@@ -24,18 +24,20 @@ final class ResetPasswordController extends Controller
     public function __construct(UserRepositoryInterface $userRepository)
     {
         $this->userRepository = $userRepository;
+
+        $this->middleware('guest');
     }
-
+    
     /**
-     * Reset the given user's password.
+     * Handle user registration
      *
-     * @param  \App\Http\Requests\ResetPasswordRequest  $request
-     * @return \App\Http\Resources\BooleanResource
+     * @param  \App\Http\Requests\RegistrationRequest  $request
+     * @return \App\Http\Resources\AccessTokenResource
      */
-    public function __invoke(ResetPasswordRequest $request): BooleanResource
+    public function __invoke(RegistrationRequest $request): AccessTokenResource
     {
-        $result = $this->userRepository->resetPassword($request->reset_token, $request->password);
+        $user = $this->userRepository->register($request->validated());
 
-        return new BooleanResource($result);
+        return new AccessTokenResource($user);
     }
 }

@@ -1,16 +1,16 @@
 <?php
 
-use App\Http\Controllers\Auth\ForgotPasswordController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Auth\VerificationController;
+use App\Http\Controllers\Auth\ForgotPasswordHandler;
+use App\Http\Controllers\Auth\LoginHandler;
+use App\Http\Controllers\Auth\LogoutHandler;
+use App\Http\Controllers\Auth\RegistrationHandler;
+use App\Http\Controllers\Auth\ResetPasswordHandler;
+use App\Http\Controllers\Auth\VerificationHandler;
 
-Route::post('login', LoginController::class)->name('login');
-Route::post('logout', LogoutController::class)->name('logout');
-Route::post('register', RegisterController::class)->name('register');
-Route::post('email/verify', VerificationController::class.'@verify')->name('verification.verify');
-Route::post('email/resend', VerificationController::class.'@resend')->name('verification.resend');
-Route::post('password/email', ForgotPasswordController::class)->name('password.email');
-Route::post('password/reset', ResetPasswordController::class)->name('password.update');
+Route::post('login', LoginHandler::class)->name('login');
+Route::post('logout', LogoutHandler::class)->name('logout');
+Route::post('register', RegistrationHandler::class)->name('register');
+Route::post('email/verify', VerificationHandler::class.'@verify')->name('verification.verify');
+Route::post('email/resend', VerificationHandler::class.'@resend')->name('verification.resend');
+Route::post('password/email', ForgotPasswordHandler::class)->name('password.email');
+Route::post('password/reset', ResetPasswordHandler::class)->name('password.update');
