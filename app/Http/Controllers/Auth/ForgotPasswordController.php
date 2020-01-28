@@ -2,47 +2,39 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use App\Exceptions\UserNotFoundException;
 use App\Http\Controllers\Controller;
-use App\Http\Resources\BooleanResource;
 use App\Http\Requests\ForgotPasswordRequest;
-use App\Notifications\ResetPasswordNotification;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use App\Http\Resources\BooleanResource;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 
-class ForgotPasswordController extends Controller
+final class ForgotPasswordController extends Controller
 {
+    /**
+     * The user repository instance.
+     *
+     * @var \App\Repositories\Interfaces\UserRepositoryInterface
+     */
+    protected $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Repositories\Interfaces\UserRepositoryInterface  $userRepository
+     */
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     /**
      * Send a reset link to the given user.
      *
-     * @param ForgotPasswordRequest $request
-     * @return BooleanResource
+     * @param  \App\Http\Requests\ForgotPasswordRequest  $request
+     * @return \App\Http\Resources\BooleanResource
      */
     public function __invoke(ForgotPasswordRequest $request): BooleanResource
     {
-        try {
-            $user = User::whereEmail($request->email)->firstOrfail();
-        } catch (\Throwable $th) {
-            throw new UserNotFoundException;
-        }
-
-        $token = urlencode(Hash::make(Str::random(40)));
-
-        $result = DB::table(config('auth.passwords.users.table'))->insert([
-            'email'      => $user->email,
-            'token'      => $token,
-            'created_at' => now(),
-        ]);
-
-        if ($result) {
-            $domain = trim(config('auth.passwords.reset_domain'), '/');
-            $path = config('auth.passwords.reset_path');
-            $url = "$domain/$path/$token";
-            
-            $user->notify(new ResetPasswordNotification($url));
-        }
+        $result = $this->userRepository->sendResetLink($request->email);
 
         return new BooleanResource($result);
     }

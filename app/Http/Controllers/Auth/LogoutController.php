@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
+use App\Http\Resources\BooleanResource;
 
-class LogoutController extends Controller
+final class LogoutController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -19,14 +18,14 @@ class LogoutController extends Controller
     }
 
     /**
-     * Logout the user
+     * Log the user out of the application.
      *
-     * @return JsonResponse
+     * @return \App\Http\Resources\BooleanResource
      */
-    public function __invoke(): JsonResponse
+    public function __invoke(): BooleanResource
     {
         auth()->logout();
 
-        return response()->json(['result' => true]);
+        return new BooleanResource(true);
     }
 }

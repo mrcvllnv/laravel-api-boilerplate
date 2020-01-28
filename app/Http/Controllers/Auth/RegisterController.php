@@ -2,52 +2,42 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use App\Exceptions\SignUpException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\RegistrationRequest;
-use App\Notifications\VerificationCodeNotification;
-use Illuminate\Database\QueryException;
-use Illuminate\Support\Facades\DB;
+use App\Http\Resources\AccessTokenResource;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 
-class RegisterController extends Controller
+final class RegisterController extends Controller
 {
+    /**
+     * The user repository instance.
+     *
+     * @var \App\Repositories\Interfaces\UserRepositoryInterface
+     */
+    protected $userRepository;
+
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param  \App\Repositories\Interfaces\UserRepositoryInterface  $userRepository
      */
-    public function __construct()
+    public function __construct(UserRepositoryInterface $userRepository)
     {
+        $this->userRepository = $userRepository;
+
         $this->middleware('guest');
     }
-
+    
     /**
-     * Register user
+     * Handle user registration
      *
-     * @param RegistrationRequest $request
-     * @return User
+     * @param  \App\Http\Requests\RegistrationRequest  $request
+     * @return \App\Http\Resources\AccessTokenResource
      */
-    public function __invoke(RegistrationRequest $request): User
+    public function __invoke(RegistrationRequest $request): AccessTokenResource
     {
-         $user = DB::transaction(function () use ($request) {
-            try {
-                $user = User::create($request->validated());
-                
-                $user->sendVerificationCodeViaEmail();
-            } catch (QueryException $e) {
-                $errorCode = $e->errorInfo[1];
-                if ($errorCode == 1062) {
-                    throw new SignUpException($e->getMessage(), 400, $e);
-                }
-                throw new SignUpException();
-            } catch (\Throwable $th) {
-                throw new SignUpException();
-            }
+        $user = $this->userRepository->register($request->validated());
 
-            return $user;
-        });
-
-        return $user;
+        return new AccessTokenResource($user);
     }
 }

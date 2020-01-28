@@ -2,43 +2,39 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\BooleanResource;
-use App\Exceptions\UserNotFoundException;
 use App\Http\Requests\ResetPasswordRequest;
-use App\Exceptions\InvalidResetTokenException;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 
-class ResetPasswordController extends Controller
+final class ResetPasswordController extends Controller
 {
+    /**
+     * The user repository instance.
+     *
+     * @var \App\Repositories\Interfaces\UserRepositoryInterface
+     */
+    protected $userRepository;
+
+    /**
+     * Create a new controller instance.
+     *
+     * @param  \App\Repositories\Interfaces\UserRepositoryInterface  $userRepository
+     */
+    public function __construct(UserRepositoryInterface $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     /**
      * Reset the given user's password.
      *
-     * @param ResetPasswordRequest $request
-     * @return BooleanResource
+     * @param  \App\Http\Requests\ResetPasswordRequest  $request
+     * @return \App\Http\Resources\BooleanResource
      */
     public function __invoke(ResetPasswordRequest $request): BooleanResource
     {
-        try {
-            $reset = DB::table(config('auth.passwords.users.table'))->whereToken($request->reset_token)->first();
-        } catch (\Throwable $th) {
-            throw new InvalidResetTokenException;
-        }
-
-        try {
-            $user = User::whereEmail($reset->email)->first();
-        } catch (\Throwable $th) {
-            throw new UserNotFoundException;
-        }
-
-        $result = $user->update([
-            'password' => $request->password
-        ]);
-
-        if ($result) {
-            DB::table(config('auth.passwords.users.table'))->whereToken($request->reset_token)->delete();
-        }
+        $result = $this->userRepository->resetPassword($request->reset_token, $request->password);
 
         return new BooleanResource($result);
     }

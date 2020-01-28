@@ -2,41 +2,41 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\LoginRequest;
 use App\Http\Resources\AccessTokenResource;
-use App\Exceptions\InvalidCredentialsException;
-use Illuminate\Support\Facades\Hash;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 
-class LoginController extends Controller
+final class LoginController extends Controller
 {
+    /**
+     * The user repository instance.
+     *
+     * @var \App\Repositories\Interfaces\UserRepositoryInterface
+     */
+    protected $userRepository;
+
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param  \App\Repositories\Interfaces\UserRepositoryInterface  $userRepository
      */
-    public function __construct()
+    public function __construct(UserRepositoryInterface $userRepository)
     {
+        $this->userRepository = $userRepository;
+
         $this->middleware('guest');
     }
 
     /**
      * Handle a login request to the application.
      *
-     * @param LoginRequest $request
-     * @return AccessTokenResource
+     * @param  \App\Http\Requests\LoginRequest  $request
+     * @return \App\Http\Resources\AccessTokenResource
      */
     public function __invoke(LoginRequest $request): AccessTokenResource
     {
-        try {
-            $user = User::whereEmail($request->email)->firstOrfail();
-        } catch (\Throwable $th) {
-            throw new InvalidCredentialsException(trans('auth.failed'));
-        }
-
-        $isPasswordWrong = !Hash::check($request->password, $user->password);
-        throw_if($isPasswordWrong, new InvalidCredentialsException(trans('auth.failed')));
+        $user = $this->userRepository->login($request->email, $request->password);
 
         return new AccessTokenResource($user);
     }

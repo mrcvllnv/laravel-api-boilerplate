@@ -71,7 +71,7 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Set the user's password
      *
-     * @param string $password
+     * @param  string  $password
      * @return void
      */
     public function setPasswordAttribute(string $password)
@@ -84,7 +84,7 @@ class User extends Authenticatable implements JWTSubject
     /**
      * Set the user's verification code
      *
-     * @param string $password
+     * @param  string  $password
      * @return void
      */
     public function setVerificationCodeAttribute(string $code)
@@ -101,27 +101,6 @@ class User extends Authenticatable implements JWTSubject
      */
     public function isVerificationCodeExpired(): bool
     {
-        return $this->verification_code_expires_at
-        ? $this->verification_code_expires_at->diffInMinutes() >= 60
-        : false;
-    }
-
-    /**
-     * Send the verification code notification.
-     *
-     * @return boolean
-     */
-    public function sendVerificationCodeViaEmail(): bool
-    {
-        $code = mt_rand(1000, 9999);
-
-        $this->update([
-            'verification_code' => $code,
-            'verification_code_expires_at' => now()->addHour()
-        ]);
-
-        $this->notify(new VerificationCodeNotification($code));
-
-        return true;
+        return optional($this->verification_code_expires_at)->diffInMinutes() >= 60 ?? false;
     }
 }

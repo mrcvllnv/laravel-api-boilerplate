@@ -2,26 +2,30 @@
 
 namespace App\Http\Controllers\Auth;
 
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\BooleanResource;
-use App\Exceptions\AlreadyVerifiedException;
 use App\Http\Requests\EmailVerificationRequest;
-use App\Notifications\VerifiedEmailNotification;
-use App\Exceptions\ExpiredVerificationCodeException;
-use App\Exceptions\InvalidVerificationCodeException;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use Illuminate\Http\Request;
 
-class VerificationController extends Controller
+final class VerificationController extends Controller
 {
+    /**
+     * The user repository instance.
+     *
+     * @var \App\Repositories\Interfaces\UserRepositoryInterface
+     */
+    protected $userRepository;
+
     /**
      * Create a new controller instance.
      *
-     * @return void
+     * @param  \App\Repositories\Interfaces\UserRepositoryInterface  $userRepository
      */
-    public function __construct()
+    public function __construct(UserRepositoryInterface $userRepository)
     {
+        $this->userRepository = $userRepository;
+
         $this->middleware('auth');
         $this->middleware('throttle:6,1');
     }
@@ -29,28 +33,12 @@ class VerificationController extends Controller
     /**
      * Mark the authenticated user's email address as verified.
      *
-     * @param EmailVerificationRequest $request
-     * @return JsonResponse
+     * @param  \App\Http\Requests\EmailVerificationRequest  $request
+     * @return \App\Http\Resources\BooleanResource
      */
     public function verify(EmailVerificationRequest $request): BooleanResource
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            throw new AlreadyVerifiedException;
-        }
-
-        if (! Hash::check($request->code, $request->user()->verification_code)) {
-            throw new InvalidVerificationCodeException;
-        }
-
-        if ($request->user()->isVerificationCodeExpired()) {
-            throw new ExpiredVerificationCodeException;
-        }
-
-        $result = $request->user()->markEmailAsVerified();
-
-        if ($result) {
-            $request->user()->notify(new VerifiedEmailNotification($request->user()));
-        }
+        $result = $this->userRepository->verifyEmail($request->user(), $request->code);
 
         return new BooleanResource($result);
     }
@@ -59,14 +47,12 @@ class VerificationController extends Controller
      * Resend the email verification code notification.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \App\Http\Resources\BooleanResource
      */
-    public function resend(Request $request)
+    public function resend(Request $request): BooleanResource
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            throw new AlreadyVerifiedException;
-        }
+        $result = $this->userRepository->resendVerificationCode($request->user());
 
-        return new BooleanResource($request->user()->sendVerificationCodeViaEmail());
+        return new BooleanResource($result);
     }
 }
