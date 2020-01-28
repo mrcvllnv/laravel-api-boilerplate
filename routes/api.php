@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\ForgotPasswordHandler;
 use App\Http\Controllers\Auth\LoginHandler;
 use App\Http\Controllers\Auth\LogoutHandler;
+use App\Http\Controllers\Auth\RefreshTokenHandler;
 use App\Http\Controllers\Auth\RegistrationHandler;
 use App\Http\Controllers\Auth\ResetPasswordHandler;
 use App\Http\Controllers\Auth\VerificationHandler;
@@ -14,3 +15,4 @@ Route::post('email/verify', VerificationHandler::class.'@verify')->name('verific
 Route::post('email/resend', VerificationHandler::class.'@resend')->name('verification.resend');
 Route::post('password/email', ForgotPasswordHandler::class)->name('password.email');
 Route::post('password/reset', ResetPasswordHandler::class)->name('password.update');
+Route::post('refresh', RefreshTokenHandler::class)->name('refresh');

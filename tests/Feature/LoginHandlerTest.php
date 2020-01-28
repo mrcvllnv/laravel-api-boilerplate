@@ -30,7 +30,7 @@ class LoginHandlerTest extends TestCase
             'password' => '12345'
         ])
         ->assertOk()
-        ->assertJsonFragment(['email' => $this->user->email]);
+        ->assertJsonStructure(['meta' => ['token' => ['access_token']]]);
     }
 
     public function testUserIsAlreadyLoggedIn()

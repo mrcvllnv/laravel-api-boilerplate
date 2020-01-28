@@ -20,12 +20,12 @@ class LogoutHandlerTest extends TestCase
             ->assertJsonFragment(['result' => true]);
 
         $this->postJson(route('logout'))
-            ->assertStatus(401);
+            ->assertUnauthorized();
     }
 
     public function testUserCannotLogoutIfNotCurrentlyLoggedIn()
     {
         $this->postJson(route('logout'))
-            ->assertStatus(401);
+            ->assertUnauthorized();
     }
 }
