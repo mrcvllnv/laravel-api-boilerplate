@@ -1,18 +1,18 @@
 <?php
 
-use Illuminate\Http\Request;
+use App\Http\Controllers\Auth\ForgotPasswordHandler;
+use App\Http\Controllers\Auth\LoginHandler;
+use App\Http\Controllers\Auth\LogoutHandler;
+use App\Http\Controllers\Auth\RefreshTokenHandler;
+use App\Http\Controllers\Auth\RegistrationHandler;
+use App\Http\Controllers\Auth\ResetPasswordHandler;
+use App\Http\Controllers\Auth\VerificationHandler;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
+Route::post('login', LoginHandler::class)->name('login');
+Route::post('logout', LogoutHandler::class)->name('logout');
+Route::post('register', RegistrationHandler::class)->name('register');
+Route::post('email/verify', VerificationHandler::class.'@verify')->name('verification.verify');
+Route::post('email/resend', VerificationHandler::class.'@resend')->name('verification.resend');
+Route::post('password/email', ForgotPasswordHandler::class)->name('password.email');
+Route::post('password/reset', ResetPasswordHandler::class)->name('password.update');
+Route::post('refresh', RefreshTokenHandler::class)->name('refresh');

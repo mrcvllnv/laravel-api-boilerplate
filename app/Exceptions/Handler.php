@@ -3,7 +3,18 @@
 namespace App\Exceptions;
 
 use Exception;
+use PDOException;
+use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Validation\ValidationException;
+use App\Exceptions\InvalidCredentialsException;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
 {
@@ -13,7 +24,7 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
-        //
+        InvalidCredentialsException::class,
     ];
 
     /**
@@ -27,19 +38,6 @@ class Handler extends ExceptionHandler
     ];
 
     /**
-     * Report or log an exception.
-     *
-     * @param  \Exception  $exception
-     * @return void
-     *
-     * @throws \Exception
-     */
-    public function report(Exception $exception)
-    {
-        parent::report($exception);
-    }
-
-    /**
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -50,6 +48,72 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        return parent::render($request, $exception);
+        list($statusCode, $detail, $errorCode) = $this->getStatusAndMessage($exception);
+
+        $data = [
+            'error' => [
+                'code'    => $errorCode ?: $statusCode,
+                'message' => $detail ? $detail : ($exception->getMessage() ?: trans('http.' . $statusCode . '.message')),
+            ],
+        ];
+
+        return response()->json($data, $statusCode);
+    }
+
+    /**
+     * @param \Exception $e
+     *
+     * @return array
+     */
+    protected function getStatusAndMessage(Exception $e): array
+    {
+        $statusCode = $e->getCode();
+        $detail = null;
+        $errorCode = null;
+
+        switch ($e) {
+            case $e instanceof BadRequestHttpException:
+                $statusCode = 400;
+                break;
+            case $e instanceof AuthenticationException || $e instanceof JWTException:
+                $statusCode = 401;
+                $detail = trans('http.401.message');
+                break;
+            case $e instanceof AuthorizationException:
+                $statusCode = 403;
+                break;
+            case $e instanceof ModelNotFoundException:
+                $statusCode = 404;
+                break;
+            case $e instanceof NotFoundHttpException:
+                $statusCode = 404;
+                break;
+            case $e instanceof MethodNotAllowedHttpException:
+                $statusCode = 405;
+                $detail = trans('http.405.message');
+                break;
+            case $e instanceof ValidationException:
+                $statusCode = 422;
+                $detail = $e->errors();
+                break;
+            case $e instanceof HttpException:
+                $statusCode = $e->getStatusCode();
+                $detail = $e->getMessage();
+                break;
+            case $e instanceof PDOException:
+                $detail = $e->getMessage();
+                $statusCode = 500;
+                break;
+        }
+
+        if (method_exists($e, 'getErrorCode')) {
+            $errorCode = $e->getErrorCode();
+        }
+
+        return [
+            $statusCode ?: 500,
+            $detail,
+            $errorCode,
+        ];
     }
 }
