@@ -2,19 +2,19 @@
 
 namespace App\Exceptions;
 
-use Exception;
-use PDOException;
-use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Auth\AuthenticationException;
-use Illuminate\Validation\ValidationException;
 use App\Exceptions\InvalidCredentialsException;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
+use PDOException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Throwable;
+use Tymon\JWTAuth\Exceptions\JWTException;
 
 class Handler extends ExceptionHandler
 {
@@ -41,12 +41,12 @@ class Handler extends ExceptionHandler
      * Render an exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \Exception  $exception
+     * @param  \Throwable  $exception
      * @return \Symfony\Component\HttpFoundation\Response
      *
-     * @throws \Exception
+     * @throws \Throwable
      */
-    public function render($request, Exception $exception)
+    public function render($request, Throwable $exception)
     {
         list($statusCode, $detail, $errorCode) = $this->getStatusAndMessage($exception);
 
@@ -61,11 +61,11 @@ class Handler extends ExceptionHandler
     }
 
     /**
-     * @param \Exception $e
+     * @param \Throwable $e
      *
      * @return array
      */
-    protected function getStatusAndMessage(Exception $e): array
+    protected function getStatusAndMessage(Throwable $e): array
     {
         $statusCode = $e->getCode();
         $detail = null;
