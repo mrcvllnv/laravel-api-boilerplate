@@ -4,10 +4,11 @@ namespace Tests\Feature;
 
 use App\Notifications\VerificationCodeNotification;
 use App\Notifications\VerifiedEmailNotification;
-use App\User;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class VerificationHandlerTest extends TestCase
@@ -20,7 +21,7 @@ class VerificationHandlerTest extends TestCase
 
         $code = mt_rand(1000, 9999);
 
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
             'verification_code' => $code
         ]);
@@ -42,7 +43,7 @@ class VerificationHandlerTest extends TestCase
 
     public function testUserEmailAlreadyVerified()
     {
-        $user = factory(User::class)->create();
+        $user = User::factory()->create();
 
         $this->actingAs($user)
             ->postJson(route('verification.verify'), [
@@ -61,7 +62,7 @@ class VerificationHandlerTest extends TestCase
 
     public function testUserCannotVerifyEmailWithIncorrectVerificationCode()
     {
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
 
@@ -76,7 +77,7 @@ class VerificationHandlerTest extends TestCase
 
     public function testUserCannotVerifyEmailWithInvalidVerificationCode()
     {
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
 
@@ -93,7 +94,7 @@ class VerificationHandlerTest extends TestCase
     {
         $code = mt_rand(1000, 9999);
 
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
             'verification_code' => $code,
             'verification_code_expires_at' => now(),
@@ -112,7 +113,7 @@ class VerificationHandlerTest extends TestCase
     {
         $code = mt_rand(1000, 9999);
 
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
             'verification_code' => $code,
             'verification_code_expires_at' => now(),
@@ -128,31 +129,14 @@ class VerificationHandlerTest extends TestCase
 
     public function testUserVerifyEmailThrottle()
     {
-        $user = factory(User::class)->create([
-            'email_verified_at' => null,
-        ]);
-
-        for ($i=0; $i < 3; $i++) { 
-            $this->actingAs($user)
-                ->postJson(route('verification.verify'), [
-                    'code' => 1234
-                ]);
-        }
-
-        $this->actingAs($user)
-            ->postJson(route('verification.verify'), [
-                'code' => 1234
-            ])
-            ->assertStatus(429);
-
-        $this->assertNull($user->fresh()->email_verified_at);
+        $this->assertContains('throttle:6,1', Route::getRoutes()->getByName('verification.verify')->gatherMiddleware());
     }
 
     public function testUserCanResendVerificationCodeNotification()
     {
         Notification::fake();
 
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email_verified_at' => null,
         ]);
 
@@ -179,17 +163,6 @@ class VerificationHandlerTest extends TestCase
 
     public function testUserVerifyEmailResendThrottle()
     {
-        $user = factory(User::class)->create([
-            'email_verified_at' => null,
-        ]);
-
-        for ($i=0; $i < 3; $i++) { 
-            $this->actingAs($user)
-                ->postJson(route('verification.resend'));
-        }
-
-        $this->actingAs($user)
-            ->postJson(route('verification.resend'))
-            ->assertStatus(429);
+        $this->assertContains('throttle:6,1', Route::getRoutes()->getByName('verification.resend')->gatherMiddleware());
     }
 }

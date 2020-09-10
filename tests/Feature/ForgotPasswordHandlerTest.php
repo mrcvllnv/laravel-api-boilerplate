@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\User;
+use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -18,7 +18,7 @@ class ForgotPasswordHandlerTest extends TestCase
     {
         Notification::fake();
 
-        $user = factory(User::class)->create();
+        $user = User::factory()->create();
 
         $this->postJson(route('password.email'), [
                 'email' => $user->email

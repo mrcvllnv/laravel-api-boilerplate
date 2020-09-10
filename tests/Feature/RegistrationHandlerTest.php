@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\User;
+use App\Models\User;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
@@ -17,7 +17,7 @@ class RegistrationHandlerTest extends TestCase
     {
         parent::setUp();
 
-        $this->attributes = factory(User::class)->make();
+        $this->attributes = User::factory()->make();
     }
 
     public function testGuestUserCanRegister()
@@ -53,7 +53,7 @@ class RegistrationHandlerTest extends TestCase
 
     public function testGuestUserCannotRegisterIfEmailIsAlreadyTaken()
     {
-        $user = factory(User::class)->create([
+        $user = User::factory()->create([
             'email' => 'existing@email.com'
         ]);
 

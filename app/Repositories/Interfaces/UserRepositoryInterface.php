@@ -2,7 +2,7 @@
 
 namespace App\Repositories\Interfaces;
 
-use App\User;
+use App\Models\User;
 
 interface UserRepositoryInterface
 {
@@ -10,14 +10,14 @@ interface UserRepositoryInterface
      * Get user by email address
      *
      * @param  string  $email
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function getByEmail(string $email): User;
 
     /**
      * Send the email verification notification.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return boolean
      */
     public function sendVerificationCode(User $user): bool;
@@ -26,7 +26,7 @@ interface UserRepositoryInterface
      * Handle a registration request for the application.
      *
      * @param  array  $attributes
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function register(array $attributes): User;
 
@@ -35,14 +35,14 @@ interface UserRepositoryInterface
      *
      * @param  string  $email
      * @param  string  $password
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function login(string $email, string $password): User;
 
     /**
      * Mark the authenticated user's email address as verified.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  integer  $code
      * @return boolean
      */
@@ -51,7 +51,7 @@ interface UserRepositoryInterface
     /**
      * Resend the email verification code notification.
      *
-     * @param \App\User $user
+     * @param \App\Models\User $user
      * @return boolean
      */
     public function resendVerificationCode(User $user): bool;

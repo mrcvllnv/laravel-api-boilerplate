@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\User;
+use App\Models\User;
 use Tests\TestCase;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +15,7 @@ class ResetPasswordHandlerTest extends TestCase
 
     public function testResetPasswordSuccessful()
     {
-        $user = factory(User::class)->create();
+        $user = User::factory()->create();
 
         $token = Hash::make(Str::random(40));
 

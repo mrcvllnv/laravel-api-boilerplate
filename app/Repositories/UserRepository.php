@@ -13,7 +13,7 @@ use App\Notifications\ResetPasswordNotification;
 use App\Notifications\VerificationCodeNotification;
 use App\Notifications\VerifiedEmailNotification;
 use App\Repositories\Interfaces\UserRepositoryInterface;
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -23,14 +23,14 @@ class UserRepository implements UserRepositoryInterface
     /**
      * The user instance.
      *
-     * @var \App\User
+     * @var \App\Models\User
      */
     protected $user;
 
     /**
      * Create a new repository instance.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      */
     public function __construct(User $user)
     {
@@ -41,7 +41,7 @@ class UserRepository implements UserRepositoryInterface
      * Get user by email address.
      *
      * @param  string  $email
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function getByEmail(string $email): User
     {
@@ -51,7 +51,7 @@ class UserRepository implements UserRepositoryInterface
     /**
      * Send verification code notification.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return boolean
      */
     public function sendVerificationCode(User $user): bool
@@ -72,7 +72,7 @@ class UserRepository implements UserRepositoryInterface
      * Handle a registration request for the application.
      *
      * @param  array  $attributes
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function register(array $attributes): User
     {
@@ -96,7 +96,7 @@ class UserRepository implements UserRepositoryInterface
      *
      * @param  string  $email
      * @param  string  $password
-     * @return \App\User
+     * @return \App\Models\User
      */
     public function login(string $email, string $password): User
     {
@@ -115,7 +115,7 @@ class UserRepository implements UserRepositoryInterface
     /**
      * Mark the authenticated user's email address as verified.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @param  integer  $code
      * @return boolean
      */
@@ -145,7 +145,7 @@ class UserRepository implements UserRepositoryInterface
     /**
      * Resend the email verification code notification.
      *
-     * @param  \App\User  $user
+     * @param  \App\Models\User  $user
      * @return boolean
      */
     public function resendVerificationCode(User $user): bool
